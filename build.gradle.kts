@@ -14,6 +14,7 @@ val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 
 dependencies {
+    implementation("org.apache.camel.quarkus:camel-quarkus-slack")
     implementation("org.apache.camel.quarkus:camel-quarkus-file-watch")
     implementation("org.apache.camel.quarkus:camel-quarkus-file")
     implementation("org.apache.camel.quarkus:camel-quarkus-timer")
