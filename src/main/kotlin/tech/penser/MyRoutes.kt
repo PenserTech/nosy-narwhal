@@ -15,15 +15,20 @@ class MyRoutes : RouteBuilder() {
         // This watches the listed directory for any changes to files and reports them on the console
         from("file-watch:./output?events=CREATE,MODIFY,DELETE")
             .id("file-watcher")
+            // escape the '$' to prevent string interpolation
             .log("\${header.CamelFileName} : \${header.CamelFileEventType}")
 
         // This will listen to a Slack channel for new messages,
         // and with the right permissions for the Slack bot, it can also post
         from("slack://general?token=RAW({{env:SLACK_CAMEL_BOT_TOKEN}})")
             .id("slack-bot")
+            .process { exchange ->
+                val payload = exchange.getMessage().getBody(com.slack.api.model.Message::class.java)
+                exchange.message.setHeader("userId", payload.user)
+            }
+            // filter out messages coming from the bot
+            .filter { exchange -> exchange.message.getHeader("userId") != "U078BNJH8BH" }
             .log("\${body}")
-//            .convertBodyTo(com.slack.api.model.Message::class.java)
-//        Need to figure out how to prevent the line below from triggering with its own messaging
-//            .to("slack://general?iconEmoji=:camel:&token=RAW({{env:SLACK_CAMEL_BOT_TOKEN}})")
+            .to("slack://general?token=RAW({{env:SLACK_CAMEL_BOT_TOKEN}})")
     }
 }
